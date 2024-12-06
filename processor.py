@@ -5,6 +5,7 @@ from pydub import AudioSegment
 from gtts import gTTS
 from dotenv import load_dotenv
 import os
+import time
 
 from classifier import MessageClassifier
 
@@ -14,17 +15,20 @@ class MessageProcessor:
     def __init__(self):
         self.recognizer = Recognizer()
     
-    def process_voice_message(self, voice: Voice, context: CallbackContext, user_id: int) -> str:
+    async def process_voice_message(self, voice: Voice, context: CallbackContext, user_id: int) -> str:
         """Processa uma mensagem de voz e retorna o texto transcrito."""
+        file_path = ""
+        wav_path = ""
+        timestr = time.strftime("%Y%m%d_%H%M%S")
         try:
             # Baixar o arquivo de áudio enviado pelo usuário
-            file = context.bot.get_file(voice.file_id)
-            file_path = f"{user_id}_input.ogg"
-            file.download(file_path)
+            file = await context.bot.get_file(voice.file_id)
+            file_path = f"{user_id}_{timestr}_input.ogg"
+            await file.download_to_drive(file_path)
 
             # Converter o áudio de OGG para WAV
-            audio = AudioSegment.from_file(file_path)
-            wav_path = f"{user_id}_input.wav"
+            audio = AudioSegment.from_file(os.path.abspath(file_path))
+            wav_path = f"{user_id}_{timestr}_input.wav"
             audio.export(wav_path, format="wav")
 
             # Transcrever o áudio usando SpeechRecognition
@@ -51,11 +55,12 @@ class MessageProcessor:
         """Processa a mensagem do usuário, seja texto ou áudio, e responde com áudio."""
         user_id = update.message.from_user.id
         response_text = ""
+        response_audio_path = ""
 
         try:
             if update.message.voice:
                 # Processar mensagem de áudio
-                response_text = self.process_voice_message(update.message.voice, context, user_id)
+                response_text = await self.process_voice_message(update.message.voice, context, user_id)
             elif update.message.text:
                 # Processar mensagem de texto
                 response_text = update.message.text
