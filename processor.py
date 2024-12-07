@@ -9,6 +9,7 @@ import time
 
 from analyst import DataAnalyst
 from classifier import MessageClassifier
+from creator import FileCreator
 from position import PositionChecker
 from talk import ProfessionalTalk
 
@@ -60,7 +61,8 @@ class MessageProcessor:
         input_text = ""
         response_text = ""
         response_audio_path = ""
-
+        file_taxa_path = "tabela_selic.csv"
+        
         try:
             if update.message.voice:
                 # Processar mensagem de áudio
@@ -84,17 +86,21 @@ class MessageProcessor:
                 data_analyst = DataAnalyst()
                 response_text = data_analyst.analyze_data(input_text);
             elif tipo == "Taxas":
-                profissional_talk = ProfessionalTalk()
-                response_text = profissional_talk.talk(input_text);
+                file_creator = FileCreator()
+                response_text = file_creator.create();
             else:
                 profissional_talk = ProfessionalTalk()
                 response_text = profissional_talk.talk(input_text);
+                
+            if tipo == "Taxas": 
+                with open(file_taxa_path, "rb") as file:
+                    await context.bot.send_document(chat_id=update.effective_chat.id, document=file)
+            else:
+                # Gerar resposta em áudio
+                response_audio_path = self.generate_audio_response(response_text, user_id)
 
-            # Gerar resposta em áudio
-            response_audio_path = self.generate_audio_response(response_text, user_id)
-
-            # Enviar resposta em áudio
-            await context.bot.send_voice(chat_id=update.effective_chat.id, voice=open(response_audio_path, "rb"))
+                # Enviar resposta em áudio
+                await context.bot.send_voice(chat_id=update.effective_chat.id, voice=open(response_audio_path, "rb"))
         
         except Exception as e:
             await update.message.reply_text(f"Desculpe, ocorreu um erro ao processar sua mensagem: {e}")
@@ -103,3 +109,7 @@ class MessageProcessor:
             # Limpar arquivo temporário do áudio de resposta
             if os.path.exists(response_audio_path):
                 os.remove(response_audio_path)
+                
+            # Limpar arquivo temporário de taxa
+            if os.path.exists(file_taxa_path):
+                os.remove(file_taxa_path)
