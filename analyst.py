@@ -1,9 +1,11 @@
 
 import ollama
 import os
+import pandas as pd
+import os
 
 FEW_SHOT_PROMPT_1 = """
-    Você recebeu um dataframe Pandas chamado lista_cronologica_df:
+    Você recebeu um dataframe Pandas chamado df:
     - Colunas: ['Posição', 'Ano', 'Validado', 'Autuado Pelo Chefe', 'Autuado Pelo Juíz', 
                 'Baixado', 'Número do Processo', 'Nome do Beneficiário', 'Documento do Beneficiário', 
                 'Nome do Ente Devedor', 'Valor', 'Unidade']
@@ -11,11 +13,11 @@ FEW_SHOT_PROMPT_1 = """
     """
     
 FEW_SHOT_ANSWER_1 = """
-    resultado = lista_cronologica_df[lista_cronologica_df['Nome do Ente Devedor'] == {enteDevedor} & lista_cronologica_df['Posição'] != 0].shape[0]
+    lista_cronologica[lista_cronologica['Nome do Ente Devedor'] == {enteDevedor}].shape[0]
     """
 
 FEW_SHOT_PROMPT_2 = """
-    Você recebeu um dataframe Pandas chamado lista_prioridade_df:
+    Você recebeu um dataframe Pandas chamado df:
     - Colunas: ['Posição', 'Ano', 'Validado', 'Autuado Pelo Chefe', 'Autuado Pelo Juíz', 
                 'Baixado', 'Percentual Pago', 'Número do Processo', 'Nome do Beneficiário', 
                 'Documento do Beneficiário', 'Nome do Ente Devedor', 'Valor', 'Unidade']
@@ -23,23 +25,23 @@ FEW_SHOT_PROMPT_2 = """
     """
     
 FEW_SHOT_ANSWER_2 = """
-    resultado = lista_prioridade_df[lista_prioridade_df['Nome do Ente Devedor'] == {enteDevedor} & lista_prioridade_df['Posição'] != 0].shape[0]
+    lista_prioridade[lista_prioridade['Nome do Ente Devedor'] == {enteDevedor}].shape[0]
     """
 
 FEW_SHOT_PROMPT_3 = """
-    Você recebeu um dataframe Pandas chamado lista_cronologica_df:
+    Você recebeu um dataframe Pandas chamado df:
     - Colunas: ['Posição', 'Ano', 'Validado', 'Autuado Pelo Chefe', 'Autuado Pelo Juíz', 
                 'Baixado', 'Número do Processo', 'Nome do Beneficiário', 'Documento do Beneficiário', 
                 'Nome do Ente Devedor', 'Valor', 'Unidade']
-   Pergunta do usuário: Quanto falta ser pago na lista cronológica do ente devedor {enteDevedor}?
+    Pergunta do usuário: Quanto falta ser pago na lista cronológica do ente devedor {enteDevedor}?
     """
     
 FEW_SHOT_ANSWER_3 = """
-    resultado = lista_cronologica_df[lista_cronologica_df['Nome do Ente Devedor'] == {enteDevedor} & lista_cronologica_df['Posição'] != 0]['Valor'].sum()
+    lista_cronologica[lista_cronologica['Nome do Ente Devedor'] == {enteDevedor}]['Valor'].sum()
     """
 
 FEW_SHOT_PROMPT_4 = """
-    Você recebeu um dataframe Pandas chamado lista_prioridade_df:
+    Você recebeu um dataframe Pandas chamado df:
     - Colunas: ['Posição', 'Ano', 'Validado', 'Autuado Pelo Chefe', 'Autuado Pelo Juíz', 
                 'Baixado', 'Percentual Pago', 'Número do Processo', 'Nome do Beneficiário', 
                 'Documento do Beneficiário', 'Nome do Ente Devedor', 'Valor', 'Unidade']
@@ -47,7 +49,7 @@ FEW_SHOT_PROMPT_4 = """
     """
     
 FEW_SHOT_ANSWER_4 = """
-    resultado = lista_prioridade_df[lista_prioridade_df['Nome do Ente Devedor'] == {enteDevedor} & lista_prioridade_df['Posição'] != 0]['Valor'].sum()]
+    lista_prioridade[lista_prioridade['Nome do Ente Devedor'] == {enteDevedor}]['Valor'].sum()
     """
 
 # Configuração do Ollama
@@ -57,8 +59,7 @@ conversation_history = [
         "content": (
             "Você é um analista de dados experiente, capaz de escrever códigos em Python "
             "capazes de extrair informações solicitadas de conjuntos de dados estruturados como arquivo CSV."
-            "Escreva o código do pandas para obter a resposta à pergunta do usuário. armazene a resposta em "
-            "uma variável chamada `resultado`. Não inclua importações. Envolva sua resposta de código usando ```."
+            "Escreva o código do pandas para obter a resposta à pergunta do usuário."
         )
     },
     {
@@ -100,7 +101,7 @@ class DataAnalyst:
         
     def analyze_data(self, query):
         task = (
-            f"Você recebeu um dataframe Pandas chamado lista_cronologica_df:\n"
+            f"Você recebeu um dataframe Pandas chamado df:\n"
             f"- Colunas: ['Posição', 'Ano', 'Validado', 'Autuado Pelo Chefe', 'Autuado Pelo Juíz', 'Baixado', 'Número do Processo', 'Nome do Beneficiário', 'Documento do Beneficiário', 'Nome do Ente Devedor', 'Valor', 'Unidade']\n"
             f"Pergunta do usuário: {query}."
         )
@@ -108,27 +109,18 @@ class DataAnalyst:
         try:
             completion = ollama.chat(
                 messages=conversation_history,
-                model='codellama'
+                model='codellama:13b'
             )
             response =  completion['message']['content']
-            print("Código gerado: \n" + response)
             conversation_history.append({"role": "assistant", "content": response})
-            
-            query = """  
-                import os
-                import pandas as pd
+            lista_cronologica_path = 'lista-cronologica.csv' 
+            lista_prioridade_path = 'lista-prioridade.csv' 
+            lista_cronologica = pd.read_csv(os.path.abspath(lista_cronologica_path))
+            lista_prioridade = pd.read_csv(os.path.abspath(lista_prioridade_path))
+            print("Código gerado: \n" + response)
 
-                csv = os.path.join('lista', 'lista-cronologica.csv')  
-                # Carregue o arquivo CSV no DataFrame
-                df = pd.read_csv(csv)
-                        
-                {resultado}
-                """
-
-            query = query.replace("{resultado}", response)
-            query = query.replace("lista-cronologica.csv", os.path.abspath('lista-cronologica.csv'))
-            context = {}   
-            exec(query,  context)
-            return context['resultado']
+            resultado = pd.eval(response)
+            return str(resultado)
         except Exception as e:
+            print(e)
             return f"Erro ao analisar os dados: {e}"

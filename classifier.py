@@ -12,7 +12,7 @@ conversation_history = [
 ]
 
 # Definir categorias para classificação
-CATEGORIES = ["Número do Processo", "Lista Cronológica ou Prioridade", "Criação de Taxas", "Trivialidades"]
+CATEGORIES = ["Número do Processo", "Lista Cronológica", "Lista Prioridade", "Criação de Taxas", "Trivialidades"]
 
 class MessageClassifier:
     """Classe para processar mensagens recebidas e gerar respostas em áudio."""
@@ -30,7 +30,7 @@ class MessageClassifier:
         """
         user_message = (
             f"Texto: {input_text}\n"
-            f"Classifique nas categorias: {', '.join(CATEGORIES)}."
+            f"Classifique nas categorias: {', '.join(CATEGORIES)}. Responda apenas com o nome da categoria apropriada sem ponto no final."
         )
         conversation_history.append({"role": "user", "content": user_message})
 

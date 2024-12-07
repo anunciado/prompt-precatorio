@@ -80,7 +80,7 @@ class MessageProcessor:
             if tipo == "Número do Processo":
                 position_checker = PositionChecker()
                 response_text = position_checker.check(input_text);
-            elif tipo ==  "Lista Cronológica ou Prioridade":
+            elif tipo ==  "Lista Cronológica" or tipo ==  "Lista Prioridade":
                 data_analyst = DataAnalyst()
                 response_text = data_analyst.analyze_data(input_text);
             elif tipo == "Criação de Taxas":
