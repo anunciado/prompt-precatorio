@@ -1,23 +1,5 @@
-import ollama
-from guardrails.hub import RegexMatch
-from guardrails import Guard
 import pandas as pd
-import os
 import requests
-
-# Configuração do Ollama
-conversation_history = [
-    {
-        "role": "system",
-        "content": (
-            "Você é um profissional especializado na criação de arquivos .csv, responsável por organizar "
-            "e estruturar dados de forma eficiente e padronizada para facilitar seu armazenamento e compartilhamento. "
-            "Utiliza ferramentas como planilhas eletrônicas ou scripts de programação para compilar informações "
-            "relevantes, garantindo a correta separação por delimitadores, geralmente vírgulas, e mantendo a "
-            "consistência no formato dos dados."
-        )
-    }
-]
 
 # URL da API do Banco Central
 URL_BANCO_CENTRAL = "http://api.bcb.gov.br/dados/serie/bcdata.sgs.4390/dados?formato=json"
