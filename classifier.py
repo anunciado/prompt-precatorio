@@ -12,7 +12,7 @@ conversation_history = [
 ]
 
 # Definir categorias para classificação
-CATEGORIES = ["Posição", "Número", "Processos", "Taxas", "Trivialidades"]
+CATEGORIES = ["Número do Processo", "Lista Cronológica ou Prioridade", "Criação de Taxas", "Trivialidades"]
 
 class MessageClassifier:
     """Classe para processar mensagens recebidas e gerar respostas em áudio."""

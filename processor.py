@@ -77,22 +77,20 @@ class MessageProcessor:
             print(f"A mensagem foi classificada em: {tipo}.")
             
             # Encaminhar pro agente responsável
-            if tipo == "Posição":
-                response_text = "Envie um CPF, CNPJ ou número de processo válido para saber a posição.";
-            elif tipo == "Número":
+            if tipo == "Número do Processo":
                 position_checker = PositionChecker()
                 response_text = position_checker.check(input_text);
-            elif tipo == "Processos":
+            elif tipo ==  "Lista Cronológica ou Prioridade":
                 data_analyst = DataAnalyst()
                 response_text = data_analyst.analyze_data(input_text);
-            elif tipo == "Taxas":
+            elif tipo == "Criação de Taxas":
                 file_creator = FileCreator()
                 response_text = file_creator.create();
             else:
                 profissional_talk = ProfessionalTalk()
                 response_text = profissional_talk.talk(input_text);
                 
-            if tipo == "Taxas": 
+            if tipo == "Criação de Taxas": 
                 with open(file_taxa_path, "rb") as file:
                     await context.bot.send_document(chat_id=update.effective_chat.id, document=file)
             else:
