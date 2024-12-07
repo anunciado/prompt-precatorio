@@ -7,7 +7,10 @@ from dotenv import load_dotenv
 import os
 import time
 
+from analyst import DataAnalyst
 from classifier import MessageClassifier
+from position import PositionChecker
+from talk import ProfessionalTalk
 
 class MessageProcessor:
     """Classe para processar mensagens recebidas e gerar respostas em áudio."""
@@ -54,19 +57,38 @@ class MessageProcessor:
     async def process_message(self, update: Update, context: CallbackContext) -> None:
         """Processa a mensagem do usuário, seja texto ou áudio, e responde com áudio."""
         user_id = update.message.from_user.id
+        input_text = ""
         response_text = ""
         response_audio_path = ""
 
         try:
             if update.message.voice:
                 # Processar mensagem de áudio
-                response_text = await self.process_voice_message(update.message.voice, context, user_id)
+                input_text = await self.process_voice_message(update.message.voice, context, user_id)
             elif update.message.text:
                 # Processar mensagem de texto
-                response_text = update.message.text
+                input_text = update.message.text
             
+            # Classificar a mensagem
             message_classifier = MessageClassifier()
-            response_text = f"A mensagem foi classificada em: {message_classifier.classify_text(response_text)}."
+            tipo = message_classifier.classify_text(input_text)
+            print(f"A mensagem foi classificada em: {tipo}.")
+            
+            # Encaminhar pro agente responsável
+            if tipo == "Posição":
+                response_text = "Envie um CPF, CNPJ ou número de processo válido para saber a posição.";
+            elif tipo == "Número":
+                position_checker = PositionChecker()
+                response_text = position_checker.check(input_text);
+            elif tipo == "Processos":
+                data_analyst = DataAnalyst()
+                response_text = data_analyst.analyze_data(input_text);
+            elif tipo == "Taxas":
+                profissional_talk = ProfessionalTalk()
+                response_text = profissional_talk.talk(input_text);
+            else:
+                profissional_talk = ProfessionalTalk()
+                response_text = profissional_talk.talk(input_text);
 
             # Gerar resposta em áudio
             response_audio_path = self.generate_audio_response(response_text, user_id)

@@ -1,5 +1,3 @@
-from telegram import Update
-from telegram.ext import CallbackContext
 import ollama
 
 # Configuração do Ollama
@@ -8,13 +6,13 @@ conversation_history = [
         "role": "system",
         "content": (
             "Você é um classificador de texto. Sua tarefa é classificar os textos fornecidos "
-            "em categorias específicas. Responda apenas com o nome da categoria apropriada."
+            "em categorias específicas. Responda apenas com o nome da categoria apropriada. "
         )
     }
 ]
 
 # Definir categorias para classificação
-CATEGORIES = ["Processo", "Trivialidade"]
+CATEGORIES = ["Posição", "Número", "Processos", "Taxas", "Trivialidades"]
 
 class MessageClassifier:
     """Classe para processar mensagens recebidas e gerar respostas em áudio."""
